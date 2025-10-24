@@ -1,0 +1,1 @@
+# discourse-gwj-featured-topic-slider
