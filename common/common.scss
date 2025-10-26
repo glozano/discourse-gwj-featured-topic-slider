@@ -16,7 +16,7 @@
 
   &__heading {
     margin: 0;
-    font-size: var(--font-up-2);
+    font-size: var(--font-up-1-rem);
     font-weight: 700;
   }
 
@@ -82,10 +82,6 @@
     --gwj-parallax-image: 0px;
     --gwj-parallax-body: 0px;
     flex: 0 0 calc(90% - var(--gwj-slider-gap));
-
-    &:last-child {
-      flex-basis: calc(100% - 0.5rem);
-    }
   }
 
   &__card-link {
@@ -153,7 +149,7 @@
     margin: 0;
     font-size: var(--font-up-1);
     line-height: 1.35;
-    color: var(--primary-high);
+    //color: var(--primary-high);
 
     .emoji {
       width: 1.1em;
