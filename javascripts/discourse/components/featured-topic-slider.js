@@ -76,29 +76,18 @@ export default class FeaturedTopicSliderComponent extends Component {
         : null;
       const fancyTitle = topic.fancy_title;
       let safeTitle;
-      if (typeof fancyTitle === "string" && fancyTitle.includes("<")) {
+      if (typeof fancyTitle === "string" && fancyTitle.trim().length > 0) {
         safeTitle = htmlSafe(fancyTitle);
       } else {
         const rawTitle = topic.title || "";
         const escaped = escapeExpression(rawTitle);
-        let withEmoji = escaped;
-        try {
-          const emojiModule = typeof requirejs === "function" ? requirejs("pretty-text/emoji") : null;
-          const emojiParser = emojiModule?.emojiUnescape;
-          if (typeof emojiParser === "function") {
-            withEmoji = emojiParser(escaped);
-          }
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.debug("[featured-topic-slider] emoji conversion skipped", error);
-        }
-        safeTitle = htmlSafe(withEmoji);
+        safeTitle = htmlSafe(escaped);
       }
 
       return {
         topic,
         id: topic.id,
-        title: topic.fancy_title || topic.title,
+        title: topic.title || "",
         titleHtml: safeTitle,
         url: getURL(`/t/${topic.slug || topic.id}/${topic.id}`),
         excerpt: topic.excerpt,
