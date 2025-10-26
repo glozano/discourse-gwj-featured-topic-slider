@@ -273,6 +273,7 @@ export default class FeaturedTopicSliderComponent extends Component {
     this.loadTopics(true);
   }
 
+  @action
   cardParallaxStyle(index) {
     if (this.prefersReducedMotion) {
       return null;
