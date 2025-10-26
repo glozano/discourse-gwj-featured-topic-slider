@@ -10,7 +10,7 @@ import I18n from "I18n";
 import { fetchFeaturedTopics } from "../lib/gwj-featured-topic-data";
 import { resolveTopicImage } from "../lib/gwj-topic-images";
 import getURL from "discourse-common/lib/get-url";
-import { emojiUnescape } from "discourse/lib/text";
+import TextLib from "discourse/lib/text";
 
 export default class FeaturedTopicSliderComponent extends Component {
   @service site;
@@ -81,7 +81,9 @@ export default class FeaturedTopicSliderComponent extends Component {
         safeTitle = htmlSafe(fancyTitle);
       } else {
         const rawTitle = topic.title || "";
-        const withEmoji = emojiUnescape(escapeExpression(rawTitle));
+        const escaped = escapeExpression(rawTitle);
+        const emojiParser = TextLib?.emojiUnescape;
+        const withEmoji = typeof emojiParser === "function" ? emojiParser(escaped) : escaped;
         safeTitle = htmlSafe(withEmoji);
       }
 
