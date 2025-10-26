@@ -218,10 +218,8 @@ export default class FeaturedTopicSliderComponent extends Component {
 
       if (!this.prefersReducedMotion) {
         const imageOffset = Number((-normalized * 18).toFixed(2));
-        const bodyOffset = Number((normalized * 10).toFixed(2));
         nextOffsets.set(index, {
           image: imageOffset,
-          body: bodyOffset,
         });
       }
 
@@ -234,11 +232,7 @@ export default class FeaturedTopicSliderComponent extends Component {
 
     this.activeIndex = closestIndex;
 
-    if (this.prefersReducedMotion) {
-      this.parallaxOffsets = new Map();
-    } else {
-      this.parallaxOffsets = nextOffsets;
-    }
+    this.parallaxOffsets = this.prefersReducedMotion ? new Map() : nextOffsets;
   }
 
   scrollToIndex(targetIndex) {
@@ -290,7 +284,7 @@ export default class FeaturedTopicSliderComponent extends Component {
     }
 
     return htmlSafe(
-      `--gwj-parallax-image:${offsets.image}px; --gwj-parallax-body:${offsets.body}px;`
+      `--gwj-parallax-image:${offsets.image}px;`
     );
   }
 

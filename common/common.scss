@@ -146,9 +146,7 @@
     height: inherit;
     justify-content: space-between;
     background-color: var(--header_background);
-    transform: translate3d(var(--gwj-parallax-body, 0px), 0, 0);
     transition: transform 320ms var(--ease-standard, ease);
-    will-change: transform;
   }
 
   &__title {
@@ -190,10 +188,6 @@
   &__category {
     display: inline-flex;
     align-items: center;
-
-    .badge-category__wrapper {
-      margin: 0;
-    }
   }
 
   &__status {
@@ -204,7 +198,6 @@
   @media (prefers-reduced-motion: reduce) {
     &__card {
       --gwj-parallax-image: 0px;
-      --gwj-parallax-body: 0px;
     }
 
     &__media img,
