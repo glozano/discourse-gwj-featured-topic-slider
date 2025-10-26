@@ -25,12 +25,12 @@ show_on:
   list_type: enum
   default: "custom_homepage|latest"
   choices:
-    custom_homepage: "Custom homepage"
-    latest: "Latest"
-    top: "Top"
-    new: "New"
-    categories: "Categories"
-    tags: "Tag routes"
+    "custom_homepage": "Custom homepage"
+    "latest": "Latest"
+    "top": "Top"
+    "new": "New"
+    "categories": "Categories"
+    "tags": "Tag routes"
   description:
     en: "Routes where the slider should appear."
 
@@ -74,10 +74,10 @@ insert_mode:
   type: enum
   default: "after_n"
   choices:
-    before_list: "Before topic list"
-    before_navigation: "Before navigation controls"
-    after_n: "After Nth topic row"
-    list_footer: "After topic list"
+    "before_list": "Before topic list"
+    "before_navigation": "Before navigation controls"
+    "after_n": "After Nth topic row"
+    "list_footer": "After topic list"
   description:
     en: "Where to insert the slider relative to the topic list."
 
@@ -119,8 +119,8 @@ card_aspect_ratio:
   type: enum
   default: "16:9"
   choices:
-    16:9: "16:9 (widescreen)"
-    3:2: "3:2"
-    4:3: "4:3"
+    "16:9": "16:9 (widescreen)"
+    "3:2": "3:2"
+    "4:3": "4:3"
   description:
     en: "Aspect ratio for the media area of each topic card."
