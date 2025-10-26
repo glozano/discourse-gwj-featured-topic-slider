@@ -4,12 +4,8 @@
   --gwj-slider-aspect-ratio: 56.25%;
 
   margin: 0 0 1rem 0;
-  padding: 1rem;
-  background: var(--secondary, #fff);
-  border: 1px solid var(--primary-low);
-  border-radius: var(--radius, 0.75rem);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
-
+  padding: .5rem;
+  
   &__header {
     display: flex;
     align-items: center;
@@ -130,7 +126,7 @@
     padding: 1rem;
     height: inherit;
     justify-content: space-between;
-    background-color:(--header_background);
+    background-color: var(--header_background);
   }
 
   &__title {
