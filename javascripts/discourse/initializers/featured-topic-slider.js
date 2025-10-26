@@ -7,7 +7,7 @@ import {
   isRouteEnabled,
   queryTopicListElements,
   resolvePlacementSettings,
-} from "discourse/lib/gwj-slider-placement";
+} from "../lib/gwj-slider-placement";
 
 const OUTLET_NAME = "discovery-list-container-top";
 
