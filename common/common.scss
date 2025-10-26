@@ -3,7 +3,7 @@
   --gwj-slider-desktop-count: 3;
   --gwj-slider-aspect-ratio: 56.25%;
 
-  margin: 2rem 0;
+  margin: 0 0 1rem 0;
   padding: 1rem;
   background: var(--secondary, #fff);
   border: 1px solid var(--primary-low);
@@ -128,6 +128,9 @@
     flex-direction: column;
     gap: 0.5rem;
     padding: 1rem;
+    height: inherit;
+    justify-content: space-between;
+    background-color:(--header_background);
   }
 
   &__title {
@@ -154,6 +157,7 @@
     font-size: var(--font-down-1);
     color: var(--primary-medium);
     flex-wrap: wrap;
+    justify-content: space-between;
   }
 
   &__status {
