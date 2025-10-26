@@ -78,7 +78,7 @@ export default class FeaturedTopicSliderComponent extends Component {
       const fancyTitle = topic.fancy_title;
       let safeTitle;
       if (typeof fancyTitle === "string" && fancyTitle.trim().length > 0) {
-        safeTitle = htmlSafe(fancyTitle);
+        safeTitle = htmlSafe(emojiUnescape(fancyTitle));
       } else {
         const rawTitle = topic.title || "";
         const escaped = escapeExpression(rawTitle);
