@@ -105,11 +105,14 @@ export default class FeaturedTopicSliderComponent extends Component {
 
   get sliderInlineStyle() {
     const desktopCount = Math.max(Number(this.themeSettings.slides_desktop) || 3, 1);
+    const availableTopics = Array.isArray(this.topics) ? this.topics.length : 0;
+    const visibleDesktopCount =
+      availableTopics > 0 ? Math.min(desktopCount, availableTopics) : desktopCount;
     const aspectSetting = this.themeSettings.card_aspect_ratio || "16:9";
     const [width, height] = aspectSetting.split(":").map((value) => Number(value) || 1);
     const aspectPercent = (height / width) * 100;
 
-    return `--gwj-slider-desktop-count: ${desktopCount}; --gwj-slider-aspect-ratio: ${aspectPercent}%;`;
+    return `--gwj-slider-desktop-count: ${visibleDesktopCount}; --gwj-slider-aspect-ratio: ${aspectPercent}%;`;
   }
 
   get showControls() {

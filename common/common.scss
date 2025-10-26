@@ -202,6 +202,27 @@
       transform: none !important;
     }
   }
+
+  @media screen and (min-width: 1024px) {
+    &__viewport {
+      scroll-padding-inline: var(--gwj-slider-gap);
+    }
+
+    &__track {
+      padding-inline: 0;
+    }
+
+    &__card {
+      flex: 0 0 calc(
+        (100% - (var(--gwj-slider-desktop-count) - 1) * var(--gwj-slider-gap)) /
+          var(--gwj-slider-desktop-count)
+      );
+      max-width: calc(
+        (100% - (var(--gwj-slider-desktop-count) - 1) * var(--gwj-slider-gap)) /
+          var(--gwj-slider-desktop-count)
+      );
+    }
+  }
 }
 
 .topic-list tr.gwj-featured-topic-slider-row td {
