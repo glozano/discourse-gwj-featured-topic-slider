@@ -10,7 +10,6 @@ import I18n from "I18n";
 import { fetchFeaturedTopics } from "../lib/gwj-featured-topic-data";
 import { resolveTopicImage } from "../lib/gwj-topic-images";
 import getURL from "discourse-common/lib/get-url";
-import TextLib from "discourse/lib/text";
 
 export default class FeaturedTopicSliderComponent extends Component {
   @service site;
@@ -82,8 +81,17 @@ export default class FeaturedTopicSliderComponent extends Component {
       } else {
         const rawTitle = topic.title || "";
         const escaped = escapeExpression(rawTitle);
-        const emojiParser = TextLib?.emojiUnescape;
-        const withEmoji = typeof emojiParser === "function" ? emojiParser(escaped) : escaped;
+        let withEmoji = escaped;
+        try {
+          const emojiModule = typeof requirejs === "function" ? requirejs("pretty-text/emoji") : null;
+          const emojiParser = emojiModule?.emojiUnescape;
+          if (typeof emojiParser === "function") {
+            withEmoji = emojiParser(escaped);
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.debug("[featured-topic-slider] emoji conversion skipped", error);
+        }
         safeTitle = htmlSafe(withEmoji);
       }
 
