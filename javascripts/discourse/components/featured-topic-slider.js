@@ -6,6 +6,7 @@ import { action } from "@ember/object";
 import { inject as service } from "@ember/service";
 import { htmlSafe } from "@ember/template";
 import { escapeExpression } from "@ember/string";
+import { emojiUnescape } from "discourse/lib/text";
 import I18n from "I18n";
 import { fetchFeaturedTopics } from "../lib/gwj-featured-topic-data";
 import { resolveTopicImage } from "../lib/gwj-topic-images";
@@ -81,7 +82,9 @@ export default class FeaturedTopicSliderComponent extends Component {
       } else {
         const rawTitle = topic.title || "";
         const escaped = escapeExpression(rawTitle);
-        safeTitle = htmlSafe(escaped);
+        const withEmoji =
+          typeof emojiUnescape === "function" ? emojiUnescape(escaped) : escaped;
+        safeTitle = htmlSafe(withEmoji);
       }
 
       return {
