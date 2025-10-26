@@ -58,6 +58,7 @@
             class="gwj-featured-topic-slider-wrapper__card"
             data-slider-index={{index}}
             role="listitem"
+            style={{this.cardParallaxStyle index}}
           >
             <a
               href={{card.url}}
@@ -75,7 +76,10 @@
                 {{/if}}
               </div>
               <div class="gwj-featured-topic-slider-wrapper__body">
-                <h3 class="gwj-featured-topic-slider-wrapper__title">
+                <h3
+                  class="gwj-featured-topic-slider-wrapper__title"
+                  aria-label={{card.title}}
+                >
                   {{{card.titleHtml}}}
                 </h3>
 
@@ -89,13 +93,12 @@
 
                 <div class="gwj-featured-topic-slider-wrapper__meta">
                   {{#if card.category}}
-                    <span class="gwj-featured-topic-slider-wrapper__category">
-                      {{category-badge
-                        card.category
-                        prioritizeSlug=false
-                        showParent=true
-                      }}
-                    </span>
+                    {{category-badge
+                      category=card.category
+                      prioritizeSlug=false
+                      showParent=true
+                      class="gwj-featured-topic-slider-wrapper__category"
+                    }}
                   {{/if}}
                   {{#if card.lastPostedAt}}
                     <span class="gwj-featured-topic-slider-wrapper__time">

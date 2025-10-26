@@ -22,9 +22,12 @@ export default class FeaturedTopicSliderComponent extends Component {
   @tracked error = null;
   @tracked activeIndex = 0;
   @tracked lastSignature = null;
+  @tracked parallaxOffsets = new Map();
+  @tracked prefersReducedMotion = false;
 
   #requestInFlight = null;
   #viewportElement = null;
+  #motionPreferenceDisposer = null;
 
   get hasTopics() {
     return Array.isArray(this.topics) && this.topics.length > 0;
@@ -144,6 +147,7 @@ export default class FeaturedTopicSliderComponent extends Component {
         this.topics = topics;
         this.activeIndex = 0;
         this.lastSignature = signature;
+        this.#scheduleParallaxUpdate();
       })
       .catch((error) => {
         this.error = error;
@@ -164,7 +168,8 @@ export default class FeaturedTopicSliderComponent extends Component {
   registerViewport(element) {
     this.#viewportElement = element;
     element.addEventListener("scroll", this.handleViewportScroll, { passive: true });
-    this.handleViewportScroll();
+    this.#setupMotionWatcher();
+    this.#scheduleParallaxUpdate();
   }
 
   @action
@@ -184,26 +189,51 @@ export default class FeaturedTopicSliderComponent extends Component {
 
     const cards = viewport.querySelectorAll("[data-slider-index]");
     if (!cards.length) {
+      this.parallaxOffsets = new Map();
       return;
     }
 
     const viewportRect = viewport.getBoundingClientRect();
     const viewportCenter = viewportRect.left + viewportRect.width / 2;
+    const viewportWidth = viewportRect.width || 1;
 
     let closestIndex = 0;
     let closestDistance = Number.POSITIVE_INFINITY;
+    const nextOffsets = new Map();
 
     cards.forEach((card) => {
       const rect = card.getBoundingClientRect();
       const cardCenter = rect.left + rect.width / 2;
+      const distanceFromCenter = cardCenter - viewportCenter;
+      const normalized = Math.max(-1, Math.min(1, distanceFromCenter / viewportWidth));
+      const index = Number(card.dataset.sliderIndex);
+      if (Number.isNaN(index)) {
+        return;
+      }
+
+      if (!this.prefersReducedMotion) {
+        const imageOffset = Number((-normalized * 26).toFixed(2));
+        const bodyOffset = Number((normalized * 18).toFixed(2));
+        nextOffsets.set(index, {
+          image: imageOffset,
+          body: bodyOffset,
+        });
+      }
+
       const distance = Math.abs(cardCenter - viewportCenter);
       if (distance < closestDistance) {
         closestDistance = distance;
-        closestIndex = Number(card.dataset.sliderIndex);
+        closestIndex = index;
       }
     });
 
     this.activeIndex = closestIndex;
+
+    if (this.prefersReducedMotion) {
+      this.parallaxOffsets = new Map();
+    } else {
+      this.parallaxOffsets = nextOffsets;
+    }
   }
 
   scrollToIndex(targetIndex) {
@@ -221,6 +251,7 @@ export default class FeaturedTopicSliderComponent extends Component {
         block: "nearest",
       });
       this.activeIndex = boundedIndex;
+      this.#scheduleParallaxUpdate();
     }
   }
 
@@ -240,5 +271,67 @@ export default class FeaturedTopicSliderComponent extends Component {
       return;
     }
     this.loadTopics(true);
+  }
+
+  cardParallaxStyle(index) {
+    if (this.prefersReducedMotion) {
+      return null;
+    }
+
+    const offsets = this.parallaxOffsets.get(index);
+    if (!offsets) {
+      return null;
+    }
+
+    return htmlSafe(
+      `--gwj-parallax-image:${offsets.image}px; --gwj-parallax-body:${offsets.body}px;`
+    );
+  }
+
+  #scheduleParallaxUpdate() {
+    if (typeof window === "undefined") {
+      return;
+    }
+    window.requestAnimationFrame(() => this.handleViewportScroll());
+  }
+
+  #setupMotionWatcher() {
+    if (this.#motionPreferenceDisposer || typeof window === "undefined") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handleChange = (event) => {
+      this.prefersReducedMotion = event.matches;
+      if (this.prefersReducedMotion) {
+        this.parallaxOffsets = new Map();
+      } else {
+        this.#scheduleParallaxUpdate();
+      }
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener("change", handleChange);
+      this.#motionPreferenceDisposer = () =>
+        mediaQuery.removeEventListener("change", handleChange);
+    } else if (mediaQuery.addListener) {
+      mediaQuery.addListener(handleChange);
+      this.#motionPreferenceDisposer = () => mediaQuery.removeListener(handleChange);
+    }
+
+    this.prefersReducedMotion = mediaQuery.matches;
+    if (this.prefersReducedMotion) {
+      this.parallaxOffsets = new Map();
+    }
+  }
+
+  willDestroy() {
+    if (typeof super.willDestroy === "function") {
+      super.willDestroy(...arguments);
+    }
+    if (this.#motionPreferenceDisposer) {
+      this.#motionPreferenceDisposer();
+      this.#motionPreferenceDisposer = null;
+    }
   }
 }
