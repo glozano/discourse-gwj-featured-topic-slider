@@ -55,7 +55,8 @@
   &__viewport {
     overflow-x: auto;
     overflow-y: hidden;
-    padding-bottom: 0.5rem;
+    padding: 0 0 0.5rem 0;
+    scroll-padding-inline: 0.5rem;
     scroll-snap-type: x mandatory;
     display: block;
     -webkit-overflow-scrolling: touch;
@@ -63,10 +64,9 @@
   }
 
   &__track {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: calc(100% - var(--gwj-slider-gap));
+    display: flex;
     gap: var(--gwj-slider-gap);
+    padding-inline: 0.25rem;
   }
 
   &__card {
@@ -81,6 +81,11 @@
     min-height: 100%;
     --gwj-parallax-image: 0px;
     --gwj-parallax-body: 0px;
+    flex: 0 0 calc(90% - var(--gwj-slider-gap));
+
+    &:last-child {
+      flex-basis: calc(100% - 0.5rem);
+    }
   }
 
   &__card-link {
@@ -112,7 +117,9 @@
       height: 100%;
       object-fit: cover;
       transition: transform 320ms var(--ease-standard, ease);
-      transform: translate3d(var(--gwj-parallax-image, 0px), 0, 0) scale(1.02);
+      transform: translate3d(var(--gwj-parallax-image, 0px), 0, 0) scale(1.01);
+      transform-origin: center;
+      will-change: transform;
     }
   }
 
@@ -128,7 +135,7 @@
 
   &__card-link:hover .gwj-featured-topic-slider-wrapper__media img,
   &__card-link:focus-visible .gwj-featured-topic-slider-wrapper__media img {
-    transform: translate3d(var(--gwj-parallax-image, 0px), 0, 0) scale(1.05);
+    transform: translate3d(var(--gwj-parallax-image, 0px), 0, 0) scale(1.03);
   }
 
   &__body {
@@ -141,6 +148,7 @@
     background-color: var(--header_background);
     transform: translate3d(var(--gwj-parallax-body, 0px), 0, 0);
     transition: transform 320ms var(--ease-standard, ease);
+    will-change: transform;
   }
 
   &__title {
@@ -191,20 +199,6 @@
   &__status {
     color: var(--primary-medium);
     font-size: var(--font-down-1);
-  }
-
-  @media (min-width: 600px) {
-    &__track {
-      grid-auto-columns: calc(50% - var(--gwj-slider-gap));
-    }
-  }
-
-  @media (min-width: 1024px) {
-    &__track {
-      grid-auto-columns: calc(
-        (100% / var(--gwj-slider-desktop-count)) - var(--gwj-slider-gap)
-      );
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {

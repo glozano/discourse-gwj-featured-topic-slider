@@ -10,6 +10,7 @@ import I18n from "I18n";
 import { fetchFeaturedTopics } from "../lib/gwj-featured-topic-data";
 import { resolveTopicImage } from "../lib/gwj-topic-images";
 import getURL from "discourse-common/lib/get-url";
+import { emojiUnescape } from "discourse/lib/text";
 
 export default class FeaturedTopicSliderComponent extends Component {
   @service site;
@@ -75,9 +76,14 @@ export default class FeaturedTopicSliderComponent extends Component {
         ? this.site.categories?.find((cat) => cat.id === topic.category_id)
         : null;
       const fancyTitle = topic.fancy_title;
-      const safeTitle = fancyTitle
-        ? htmlSafe(fancyTitle)
-        : htmlSafe(escapeExpression(topic.title || ""));
+      let safeTitle;
+      if (typeof fancyTitle === "string" && fancyTitle.includes("<")) {
+        safeTitle = htmlSafe(fancyTitle);
+      } else {
+        const rawTitle = topic.title || "";
+        const withEmoji = emojiUnescape(escapeExpression(rawTitle));
+        safeTitle = htmlSafe(withEmoji);
+      }
 
       return {
         topic,
@@ -212,8 +218,8 @@ export default class FeaturedTopicSliderComponent extends Component {
       }
 
       if (!this.prefersReducedMotion) {
-        const imageOffset = Number((-normalized * 26).toFixed(2));
-        const bodyOffset = Number((normalized * 18).toFixed(2));
+        const imageOffset = Number((-normalized * 18).toFixed(2));
+        const bodyOffset = Number((normalized * 10).toFixed(2));
         nextOffsets.set(index, {
           image: imageOffset,
           body: bodyOffset,
