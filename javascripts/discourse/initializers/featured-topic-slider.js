@@ -223,12 +223,6 @@ export default {
         handleRouteChange();
       });
 
-      api.afterTopicListRender(() => {
-        if (isAfterNMode()) {
-          schedulePlacement();
-        }
-      });
-
       handleRouteChange();
     });
   },
