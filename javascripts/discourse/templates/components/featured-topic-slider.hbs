@@ -76,13 +76,7 @@
               </div>
               <div class="gwj-featured-topic-slider-wrapper__body">
                 <h3 class="gwj-featured-topic-slider-wrapper__title">
-                  {{component
-                    "topic-title"
-                    topic=card.topic
-                    disableTitleLink=true
-                    hideCategory=true
-                    includeTopicStatusIcons=true
-                  }}
+                  {{{card.titleHtml}}}
                 </h3>
 
                 {{#unless this.themeSettings.hide_tag_chip}}
@@ -95,16 +89,16 @@
 
                 <div class="gwj-featured-topic-slider-wrapper__meta">
                   {{#if card.category}}
-                    {{category-badge
-                      category=card.category
-                      prioritizeSlug=false
-                      showParent=true
+                    <CategoryBadge
                       class="gwj-featured-topic-slider-wrapper__category"
-                    }}
+                      @category={{card.category}}
+                      @prioritizeSlug={{false}}
+                      @showParent={{true}}
+                    />
                   {{/if}}
                   {{#if card.lastPostedAt}}
                     <span class="gwj-featured-topic-slider-wrapper__time">
-                      {{relative-time to=card.lastPostedAt format="tiny"}}
+                      {{format-date card.lastPostedAt format="tiny"}}
                     </span>
                   {{/if}}
                 </div>

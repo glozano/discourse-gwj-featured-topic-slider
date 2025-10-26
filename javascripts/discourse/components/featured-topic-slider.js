@@ -4,6 +4,8 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { action } from "@ember/object";
 import { inject as service } from "@ember/service";
+import { htmlSafe } from "@ember/template";
+import { escapeExpression } from "@ember/string";
 import I18n from "I18n";
 import { fetchFeaturedTopics } from "../lib/gwj-featured-topic-data";
 import { resolveTopicImage } from "../lib/gwj-topic-images";
@@ -69,10 +71,16 @@ export default class FeaturedTopicSliderComponent extends Component {
       const category = topic.category_id
         ? this.site.categories?.find((cat) => cat.id === topic.category_id)
         : null;
+      const fancyTitle = topic.fancy_title;
+      const safeTitle = fancyTitle
+        ? htmlSafe(fancyTitle)
+        : htmlSafe(escapeExpression(topic.title || ""));
 
       return {
         topic,
         id: topic.id,
+        title: topic.fancy_title || topic.title,
+        titleHtml: safeTitle,
         url: getURL(`/t/${topic.slug || topic.id}/${topic.id}`),
         excerpt: topic.excerpt,
         image,
