@@ -1,0 +1,8 @@
+{
+  "name": "GWJ Featured Topic Slider",
+  "about_url": "https://github.com/gaz/discourse-gwj-featured-topic-slider",
+  "license_url": "https://github.com/gaz/discourse-gwj-featured-topic-slider/blob/main/LICENSE",
+  "component": true,
+  "authors": "GWJ Community",
+  "theme_version": "0.1"
+}
