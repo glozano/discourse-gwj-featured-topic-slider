@@ -6,7 +6,7 @@ import { action } from "@ember/object";
 import { inject as service } from "@ember/service";
 import { fetchFeaturedTopics } from "../lib/gwj-featured-topic-data";
 import { resolveTopicImage } from "../lib/gwj-topic-images";
-import { getURL } from "discourse-common/lib/get-url";
+import getURL from "discourse-common/lib/get-url";
 
 export default class FeaturedTopicSliderComponent extends Component {
   @service site;
