@@ -4,6 +4,7 @@
   role="region"
   aria-label={{i18n "featured_topic_slider.region_label"}}
   {{did-insert this.loadTopics}}
+  {{did-update this.handleSignatureChange this.fetchSignature}}
   style={{this.sliderInlineStyle}}
 >
   <div class="gwj-featured-topic-slider-wrapper__header">
@@ -58,7 +59,10 @@
             data-slider-index={{index}}
             role="listitem"
           >
-            <a href={{card.url}} class="gwj-featured-topic-slider-wrapper__card-link">
+            <a
+              href={{card.url}}
+              class="gwj-featured-topic-slider-wrapper__card-link"
+            >
               <div class="gwj-featured-topic-slider-wrapper__media">
                 {{#if card.image}}
                   <img
@@ -72,7 +76,13 @@
               </div>
               <div class="gwj-featured-topic-slider-wrapper__body">
                 <h3 class="gwj-featured-topic-slider-wrapper__title">
-                  {{card.title}}
+                  <TopicTitle
+                    @topic={{card.topic}}
+                    @noHref={{true}}
+                    @hideCategory={{true}}
+                    @includeTopicStatusIcons={{true}}
+                    @class="gwj-featured-topic-slider-wrapper__title-text"
+                  />
                 </h3>
 
                 {{#unless this.themeSettings.hide_tag_chip}}
@@ -85,13 +95,20 @@
 
                 <div class="gwj-featured-topic-slider-wrapper__meta">
                   {{#if card.category}}
-                    <span class="gwj-featured-topic-slider-wrapper__category">
-                      {{card.category.name}}
-                    </span>
+                    <CategoryBadge
+                      class="gwj-featured-topic-slider-wrapper__category"
+                      @category={{card.category}}
+                      @prioritizeSlug={{false}}
+                      @showParent={{true}}
+                    />
                   {{/if}}
                   {{#if card.lastPostedAt}}
                     <span class="gwj-featured-topic-slider-wrapper__time">
-                      {{format-date card.lastPostedAt format="tiny"}}
+                      <RelativeTime
+                        @to={{card.lastPostedAt}}
+                        @format="tiny"
+                        @omitSuffix={{false}}
+                      />
                     </span>
                   {{/if}}
                 </div>

@@ -16,12 +16,16 @@ export default class FeaturedTopicSliderMount extends Component {
 
   constructor() {
     super(...arguments);
-    this.router.on("routeDidChange", this.handleRouteDidChange);
+    this._routeHandler = this.handleRouteDidChange;
+    this.router.on("routeDidChange", this._routeHandler);
   }
 
   willDestroy() {
     super.willDestroy(...arguments);
-    this.router.off("routeDidChange", this.handleRouteDidChange);
+    if (this._routeHandler) {
+      this.router.off("routeDidChange", this._routeHandler);
+      this._routeHandler = null;
+    }
   }
 
   @action

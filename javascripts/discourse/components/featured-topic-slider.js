@@ -4,6 +4,7 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { action } from "@ember/object";
 import { inject as service } from "@ember/service";
+import I18n from "I18n";
 import { fetchFeaturedTopics } from "../lib/gwj-featured-topic-data";
 import { resolveTopicImage } from "../lib/gwj-topic-images";
 import getURL from "discourse-common/lib/get-url";
@@ -18,6 +19,7 @@ export default class FeaturedTopicSliderComponent extends Component {
   @tracked topics = [];
   @tracked error = null;
   @tracked activeIndex = 0;
+  @tracked lastSignature = null;
 
   #requestInFlight = null;
   #viewportElement = null;
@@ -42,6 +44,21 @@ export default class FeaturedTopicSliderComponent extends Component {
     return Number(this.themeSettings.topic_count) || 0;
   }
 
+  get currentLocale() {
+    return I18n?.currentLocale?.() || this.site.locale || "en";
+  }
+
+  get fetchSignature() {
+    return [
+      this.currentLocale,
+      this.featuredTag || "none",
+      this.topicQuota,
+      this.themeSettings.include_pinned ? "pinned" : "no-pinned",
+      this.themeSettings.shuffle_topics ? "shuffle" : "ordered",
+      this.cacheContext,
+    ].join("|");
+  }
+
   get topicCards() {
     if (!this.hasTopics) {
       return [];
@@ -54,8 +71,8 @@ export default class FeaturedTopicSliderComponent extends Component {
         : null;
 
       return {
+        topic,
         id: topic.id,
-        title: topic.fancy_title || topic.title,
         url: getURL(`/t/${topic.slug || topic.id}/${topic.id}`),
         excerpt: topic.excerpt,
         image,
@@ -89,30 +106,42 @@ export default class FeaturedTopicSliderComponent extends Component {
   }
 
   @action
-  async loadTopics() {
-    if (this.#requestInFlight) {
+  async loadTopics(force = false) {
+    if (!force && this.#requestInFlight) {
       return this.#requestInFlight;
+    }
+
+    if (!force && this.lastSignature === this.fetchSignature && this.hasTopics) {
+      return;
     }
 
     this.isLoading = true;
     this.error = null;
+    const signature = this.fetchSignature;
     const options = {
       tag: this.featuredTag,
       topicCount: this.topicQuota,
       includePinned: this.themeSettings.include_pinned,
       shuffle: this.themeSettings.shuffle_topics,
       cacheContext: this.cacheContext,
+      locale: this.currentLocale,
     };
 
     const request = fetchFeaturedTopics(options)
       .then((topics) => {
+        if (signature !== this.fetchSignature) {
+          return;
+        }
+
         this.topics = topics;
         this.activeIndex = 0;
+        this.lastSignature = signature;
       })
       .catch((error) => {
         this.error = error;
         // eslint-disable-next-line no-console
         console.warn("[featured-topic-slider] Failed to load featured topics", error);
+        this.lastSignature = null;
       })
       .finally(() => {
         this.isLoading = false;
@@ -195,5 +224,13 @@ export default class FeaturedTopicSliderComponent extends Component {
   @action
   focusPrev() {
     this.scrollToIndex(this.activeIndex - 1);
+  }
+
+  @action
+  handleSignatureChange() {
+    if (this.fetchSignature === this.lastSignature && this.hasTopics) {
+      return;
+    }
+    this.loadTopics(true);
   }
 }

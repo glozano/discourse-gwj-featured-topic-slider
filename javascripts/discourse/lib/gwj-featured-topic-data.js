@@ -3,12 +3,13 @@ import { ajax } from "discourse/lib/ajax";
 const CACHE_TTL_MS = 120000;
 const CACHE = new Map();
 
-function buildCacheKey({ tag, cacheContext = "default", includePinned, topicCount }) {
+function buildCacheKey({ tag, cacheContext = "default", includePinned, topicCount, locale }) {
   return [
     tag?.toLowerCase() ?? "none",
     cacheContext,
     includePinned ? "with-pinned" : "no-pinned",
     topicCount || 0,
+    locale || "en",
   ].join("|");
 }
 
@@ -55,13 +56,20 @@ export async function fetchFeaturedTopics({
   includePinned,
   shuffle,
   cacheContext,
+  locale,
 } = {}) {
   const safeCount = sanitizeTopicCount(topicCount);
   if (!tag || safeCount === 0) {
     return [];
   }
 
-  const cacheKey = buildCacheKey({ tag, cacheContext, includePinned, topicCount: safeCount });
+  const cacheKey = buildCacheKey({
+    tag,
+    cacheContext,
+    includePinned,
+    topicCount: safeCount,
+    locale,
+  });
   const cached = readCache(cacheKey);
   if (cached) {
     return cached;

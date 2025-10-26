@@ -119,6 +119,8 @@ export function queryTopicListElements(root = document) {
 }
 
 export function ensureRowWrapper({ sliderElement, columnCount }) {
+  // Creates a synthetic table row that spans all topic-list columns so the slider
+  // can be injected after the configured row index when using the after_n mode.
   let row = sliderElement.closest?.("tr.gwj-featured-topic-slider-row");
   if (row) {
     return row;
