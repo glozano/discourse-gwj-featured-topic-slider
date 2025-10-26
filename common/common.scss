@@ -59,12 +59,13 @@
     scroll-snap-type: x mandatory;
     display: block;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
 
   &__track {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: calc(100% - var(--gwj-slider-gap));
+    grid-auto-columns: calc(90% - var(--gwj-slider-gap));
     gap: var(--gwj-slider-gap);
   }
 
