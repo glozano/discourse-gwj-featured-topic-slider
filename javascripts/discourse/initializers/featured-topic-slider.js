@@ -2,15 +2,12 @@
 
 import { withPluginApi } from "discourse/lib/plugin-api";
 import {
-  ensureBlockWrapper,
   ensureRowWrapper,
-  findNavigationContainer,
-  isRouteEnabled,
   queryTopicListElements,
   resolvePlacementSettings,
 } from "../lib/gwj-slider-placement";
 
-const ANCHOR_SELECTOR = '[data-featured-topic-slider-anchor="true"]';
+const ANCHOR_SELECTOR = '[data-featured-topic-slider-anchor="dynamic"]';
 const SLIDER_SELECTOR = '[data-featured-topic-slider="true"]';
 
 export default {
@@ -23,12 +20,14 @@ export default {
         anchor: null,
         sliderElement: null,
         rowWrapper: null,
-        blockWrapper: null,
         randomTargetIndex: null,
         observer: null,
         observerTarget: null,
-        lastRouteKey: null,
       };
+
+      function isAfterNMode() {
+        return themeSettings.insert_mode === "after_n";
+      }
 
       function clampIndex(index, upperBound) {
         if (!upperBound || upperBound <= 0) {
@@ -47,16 +46,27 @@ export default {
       }
 
       function restoreSliderToAnchor() {
-        if (state.anchor && state.sliderElement) {
-          const parent = state.sliderElement.parentNode;
-          if (parent !== state.anchor) {
-            state.anchor.appendChild(state.sliderElement);
-          }
+        if (!state.anchor) {
+          return;
         }
 
-        if (state.anchor) {
-          state.anchor.style.display = "";
+        if (!state.anchor.isConnected) {
+          state.anchor = null;
+          return;
         }
+
+        if (state.sliderElement?.parentNode !== state.anchor && state.sliderElement) {
+          state.anchor.appendChild(state.sliderElement);
+        }
+
+        state.anchor.style.display = "";
+      }
+
+      function detachRowWrapper() {
+        if (state.rowWrapper?.isConnected) {
+          state.rowWrapper.remove();
+        }
+        state.rowWrapper = null;
       }
 
       function disconnectObserver() {
@@ -67,46 +77,38 @@ export default {
         }
       }
 
-      function teardown({ hideOnly = false } = {}) {
+      function teardown() {
         state.randomTargetIndex = null;
-
-        if (state.rowWrapper?.isConnected) {
-          state.rowWrapper.remove();
-        }
-
-        if (state.blockWrapper?.isConnected) {
-          state.blockWrapper.remove();
-        }
-
+        detachRowWrapper();
         restoreSliderToAnchor();
-        if (hideOnly && state.anchor) {
-          state.anchor.style.display = "none";
-        }
-
-        state.rowWrapper = null;
-        state.blockWrapper = null;
-
         disconnectObserver();
 
-        if (!hideOnly) {
+        if (state.sliderElement && !state.sliderElement.isConnected) {
           state.sliderElement = null;
+        }
+
+        if (state.anchor && !state.anchor.isConnected) {
+          state.anchor = null;
         }
       }
 
       function ensureElementsReady(callback) {
+        state.anchor = document.querySelector(ANCHOR_SELECTOR);
         if (!state.anchor) {
-          state.anchor = document.querySelector(ANCHOR_SELECTOR);
-        }
-
-        if (!state.anchor) {
-          window.requestAnimationFrame(() => ensureElementsReady(callback));
+          teardown();
           return;
         }
 
-        if (!state.sliderElement) {
+        if (!state.anchor.isConnected) {
+          state.anchor = null;
+          teardown();
+          return;
+        }
+
+        if (!state.sliderElement || !state.sliderElement.isConnected) {
           state.sliderElement =
-            document.querySelector(SLIDER_SELECTOR) ||
-            state.anchor.querySelector(SLIDER_SELECTOR);
+            state.anchor.querySelector(SLIDER_SELECTOR) ||
+            document.querySelector(SLIDER_SELECTOR);
         }
 
         if (!state.sliderElement) {
@@ -138,139 +140,30 @@ export default {
           childList: true,
           subtree: true,
         });
+
         state.observerTarget = listArea;
       }
 
       function runPlacement() {
-        if (!state.sliderElement) {
+        if (!isAfterNMode() || !state.anchor || !state.sliderElement) {
           return;
         }
 
         const topicListElements = queryTopicListElements();
-        const listArea = topicListElements?.listArea || document.querySelector("#list-area");
-        const placementConfig = resolvePlacementSettings(themeSettings);
-        const navContainer = findNavigationContainer(document);
-
-        if (placementConfig.insertMode === "before_navigation" && navContainer) {
-          if (state.rowWrapper?.isConnected) {
-            state.rowWrapper.remove();
-            state.rowWrapper = null;
-          }
-
-          const wrapper = ensureBlockWrapper(state.sliderElement);
-          if (state.blockWrapper && state.blockWrapper !== wrapper && state.blockWrapper.isConnected) {
-            state.blockWrapper.remove();
-          }
-
-          state.blockWrapper = wrapper;
-          const parent = navContainer.parentNode || document.querySelector(".list-controls") || document.body;
-          parent.insertBefore(wrapper, navContainer);
-          if (state.anchor && state.sliderElement.parentNode !== state.anchor) {
-            state.anchor.style.display = "none";
-          }
-          return;
-        }
-
         if (!topicListElements?.topicList) {
-          if (state.rowWrapper?.isConnected) {
-            state.rowWrapper.remove();
-            state.rowWrapper = null;
-          }
-
-          if (!listArea) {
-            restoreSliderToAnchor();
-            return;
-          }
-
-          const wrapper = ensureBlockWrapper(state.sliderElement);
-          if (state.blockWrapper && state.blockWrapper !== wrapper && state.blockWrapper.isConnected) {
-            state.blockWrapper.remove();
-          }
-
-          state.blockWrapper = wrapper;
-          listArea.insertBefore(wrapper, listArea.firstChild || null);
-
-          if (state.anchor && state.sliderElement.parentNode !== state.anchor) {
-            state.anchor.style.display = "none";
-          }
-
-          return;
-        }
-
-        const { topicList, bodyRows, columnCount } = topicListElements;
-        const listLength = bodyRows.length;
-
-        if (placementConfig.insertMode === "before_list") {
-          if (state.rowWrapper?.isConnected) {
-            state.rowWrapper.remove();
-            state.rowWrapper = null;
-          }
-
-          const wrapper = ensureBlockWrapper(state.sliderElement);
-          if (state.blockWrapper && state.blockWrapper !== wrapper && state.blockWrapper.isConnected) {
-            state.blockWrapper.remove();
-          }
-          state.blockWrapper = wrapper;
-
-          const parent = topicList.parentNode || topicList.closest(".contents") || topicList;
-          parent.insertBefore(wrapper, topicList);
-
-          if (state.anchor && state.sliderElement.parentNode !== state.anchor) {
-            state.anchor.style.display = "none";
-          }
-          return;
-        }
-
-        if (placementConfig.insertMode === "list_footer") {
-          if (state.rowWrapper?.isConnected) {
-            state.rowWrapper.remove();
-            state.rowWrapper = null;
-          }
-
-          const wrapper = ensureBlockWrapper(state.sliderElement);
-          if (state.blockWrapper && state.blockWrapper !== wrapper && state.blockWrapper.isConnected) {
-            state.blockWrapper.remove();
-          }
-          state.blockWrapper = wrapper;
-          const parent = topicList.parentNode || topicList.closest(".contents") || topicList;
-          parent.insertBefore(wrapper, topicList.nextSibling);
-
-          if (state.anchor && state.sliderElement.parentNode !== state.anchor) {
-            state.anchor.style.display = "none";
-          }
-          return;
-        }
-
-        if (!listLength) {
-          const wrapper = ensureBlockWrapper(state.sliderElement);
-          if (state.rowWrapper?.isConnected) {
-            state.rowWrapper.remove();
-            state.rowWrapper = null;
-          }
-          if (state.blockWrapper && state.blockWrapper !== wrapper && state.blockWrapper.isConnected) {
-            state.blockWrapper.remove();
-          }
-          state.blockWrapper = wrapper;
-          const parent = topicList.parentNode || topicList.closest(".contents") || topicList;
-          parent.insertBefore(wrapper, topicList);
-
-          if (state.anchor && state.sliderElement.parentNode !== state.anchor) {
-            state.anchor.style.display = "none";
-          }
-          return;
-        }
-
-        if (state.blockWrapper?.isConnected) {
-          state.blockWrapper.remove();
-        }
-        state.blockWrapper = null;
-
-        const tbody = bodyRows[0]?.parentNode;
-        if (!tbody) {
           restoreSliderToAnchor();
           return;
         }
 
+        const { bodyRows, columnCount } = topicListElements;
+        const listLength = bodyRows.length;
+
+        if (!listLength) {
+          restoreSliderToAnchor();
+          return;
+        }
+
+        const placementConfig = resolvePlacementSettings(themeSettings);
         const minIndex = clampIndex(placementConfig.minIndex, listLength);
         const maxIndex = clampIndex(placementConfig.maxIndex, listLength);
 
@@ -293,6 +186,12 @@ export default {
         });
         state.rowWrapper = rowWrapper;
 
+        const tbody = bodyRows[0]?.parentNode;
+        if (!tbody) {
+          restoreSliderToAnchor();
+          return;
+        }
+
         const referenceRow = bodyRows[Math.min(targetIndex, listLength) - 1];
         tbody.insertBefore(rowWrapper, referenceRow?.nextSibling || null);
 
@@ -302,55 +201,32 @@ export default {
       }
 
       function schedulePlacement() {
-        ensureElementsReady(() => window.requestAnimationFrame(runPlacement));
-      }
-
-      function getRouteInfo() {
-        const router = api.container.lookup("router:main");
-        const routeName = router?.currentRouteName;
-        let pathname = window.location?.pathname;
-
-        if (router?.currentURL) {
-          pathname = router.currentURL.split("?")[0];
-        }
-
-        return { routeName, pathname };
-      }
-
-      function shouldDisplayForRoute() {
-        const { routeName, pathname } = getRouteInfo();
-        return isRouteEnabled({
-          showOn: themeSettings.show_on,
-          routeName,
-          pathname,
-        });
+        window.requestAnimationFrame(runPlacement);
       }
 
       function handleRouteChange() {
-        const routeKey = `${window.location.pathname}::${window.location.search}`;
-        if (state.lastRouteKey === routeKey) {
+        if (!isAfterNMode()) {
+          teardown();
           return;
         }
 
-        state.lastRouteKey = routeKey;
-
-        if (!shouldDisplayForRoute()) {
-          teardown({ hideOnly: true });
-          return;
-        }
-
-        ensureElementsReady(() => {
-          if (state.anchor) {
-            state.anchor.style.display = "";
-          }
-          ensureObserver();
-          state.randomTargetIndex = null;
-          schedulePlacement();
+        window.requestAnimationFrame(() => {
+          ensureElementsReady(() => {
+            ensureObserver();
+            state.randomTargetIndex = null;
+            schedulePlacement();
+          });
         });
       }
 
       api.onPageChange(() => {
         handleRouteChange();
+      });
+
+      api.afterTopicListRender(() => {
+        if (isAfterNMode()) {
+          schedulePlacement();
+        }
       });
 
       handleRouteChange();

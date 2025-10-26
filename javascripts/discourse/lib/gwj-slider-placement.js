@@ -93,54 +93,6 @@ export function resolvePlacementSettings(settings) {
   };
 }
 
-function clampIndex(index, upperBound) {
-  if (!upperBound || upperBound <= 0) {
-    return 0;
-  }
-
-  if (index < 1) {
-    return 1;
-  }
-
-  if (index > upperBound) {
-    return upperBound;
-  }
-
-  return index;
-}
-
-export function determineInsertionIndex({
-  listLength,
-  settings,
-  randomSelector = Math.random,
-}) {
-  const config = resolvePlacementSettings(settings);
-
-  if (config.insertMode === "before_list") {
-    return { mode: "before_list", index: 0 };
-  }
-
-  if (config.insertMode === "list_footer") {
-    return { mode: "list_footer", index: clampIndex(listLength, listLength) };
-  }
-
-  if (listLength <= 0) {
-    return { mode: "after_n", index: 1 };
-  }
-
-  if (config.randomize) {
-    const minIndex = clampIndex(config.minIndex, listLength);
-    const maxIndex = clampIndex(config.maxIndex, listLength);
-
-    const range = Math.max(maxIndex - minIndex + 1, 1);
-    const selection = Math.floor(randomSelector() * range);
-    return { mode: "after_n", index: minIndex + selection };
-  }
-
-  const index = clampIndex(config.positionIndex, listLength);
-  return { mode: "after_n", index };
-}
-
 export function queryTopicListElements(root = document) {
   const listArea = root.querySelector?.("#list-area");
   if (!listArea) {
@@ -166,14 +118,6 @@ export function queryTopicListElements(root = document) {
   };
 }
 
-export function findNavigationContainer(root = document) {
-  return (
-    root.querySelector?.(".navigation-container") ||
-    root.querySelector?.(".list-controls") ||
-    null
-  );
-}
-
 export function ensureRowWrapper({ sliderElement, columnCount }) {
   let row = sliderElement.closest?.("tr.gwj-featured-topic-slider-row");
   if (row) {
@@ -187,18 +131,4 @@ export function ensureRowWrapper({ sliderElement, columnCount }) {
   row.appendChild(cell);
   cell.appendChild(sliderElement);
   return row;
-}
-
-export function ensureBlockWrapper(sliderElement) {
-  const wrapper =
-    sliderElement.closest?.(".gwj-featured-topic-slider-block") ||
-    document.createElement("div");
-
-  if (!wrapper.classList.contains("gwj-featured-topic-slider-block")) {
-    wrapper.className = "gwj-featured-topic-slider-block";
-    sliderElement.parentNode?.insertBefore(wrapper, sliderElement);
-    wrapper.appendChild(sliderElement);
-  }
-
-  return wrapper;
 }

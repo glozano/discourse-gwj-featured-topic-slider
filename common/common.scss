@@ -176,15 +176,11 @@
   }
 }
 
-.gwj-featured-topic-slider-block {
-  width: 100%;
-}
-
 .topic-list tr.gwj-featured-topic-slider-row td {
   padding: 0;
   border-top: none;
 }
 
-[data-featured-topic-slider-anchor] {
+[data-featured-topic-slider-anchor="dynamic"] {
   display: contents;
 }

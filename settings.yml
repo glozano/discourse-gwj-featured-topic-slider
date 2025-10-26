@@ -74,6 +74,7 @@ insert_mode:
   type: enum
   default: "after_n"
   choices:
+    - before_main
     - before_list
     - before_navigation
     - after_n
