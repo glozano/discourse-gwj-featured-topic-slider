@@ -4,6 +4,7 @@ import { withPluginApi } from "discourse/lib/plugin-api";
 import {
   ensureBlockWrapper,
   ensureRowWrapper,
+  findNavigationContainer,
   isRouteEnabled,
   queryTopicListElements,
   resolvePlacementSettings,
@@ -148,6 +149,27 @@ export default {
         const topicListElements = queryTopicListElements();
         const listArea = topicListElements?.listArea || document.querySelector("#list-area");
         const placementConfig = resolvePlacementSettings(themeSettings);
+        const navContainer = findNavigationContainer(document);
+
+        if (placementConfig.insertMode === "before_navigation" && navContainer) {
+          if (state.rowWrapper?.isConnected) {
+            state.rowWrapper.remove();
+            state.rowWrapper = null;
+          }
+
+          const wrapper = ensureBlockWrapper(state.sliderElement);
+          if (state.blockWrapper && state.blockWrapper !== wrapper && state.blockWrapper.isConnected) {
+            state.blockWrapper.remove();
+          }
+
+          state.blockWrapper = wrapper;
+          const parent = navContainer.parentNode || document.querySelector(".list-controls") || document.body;
+          parent.insertBefore(wrapper, navContainer);
+          if (state.anchor && state.sliderElement.parentNode !== state.anchor) {
+            state.anchor.style.display = "none";
+          }
+          return;
+        }
 
         if (!topicListElements?.topicList) {
           if (state.rowWrapper?.isConnected) {

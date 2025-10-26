@@ -75,6 +75,7 @@ insert_mode:
   default: "after_n"
   choices:
     before_list: "Before topic list"
+    before_navigation: "Before navigation controls"
     after_n: "After Nth topic row"
     list_footer: "After topic list"
   description:

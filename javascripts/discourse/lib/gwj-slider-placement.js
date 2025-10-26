@@ -166,6 +166,14 @@ export function queryTopicListElements(root = document) {
   };
 }
 
+export function findNavigationContainer(root = document) {
+  return (
+    root.querySelector?.(".navigation-container") ||
+    root.querySelector?.(".list-controls") ||
+    null
+  );
+}
+
 export function ensureRowWrapper({ sliderElement, columnCount }) {
   let row = sliderElement.closest?.("tr.gwj-featured-topic-slider-row");
   if (row) {
