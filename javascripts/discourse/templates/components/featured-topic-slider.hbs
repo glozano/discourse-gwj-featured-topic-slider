@@ -89,12 +89,13 @@
 
                 <div class="gwj-featured-topic-slider-wrapper__meta">
                   {{#if card.category}}
-                    <CategoryBadge
-                      class="gwj-featured-topic-slider-wrapper__category"
-                      @category={{card.category}}
-                      @prioritizeSlug={{false}}
-                      @showParent={{true}}
-                    />
+                    <span class="gwj-featured-topic-slider-wrapper__category">
+                      {{category-badge
+                        card.category
+                        prioritizeSlug=false
+                        showParent=true
+                      }}
+                    </span>
                   {{/if}}
                   {{#if card.lastPostedAt}}
                     <span class="gwj-featured-topic-slider-wrapper__time">
