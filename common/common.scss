@@ -122,11 +122,15 @@
   &__media--fallback {
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-      135deg,
-      var(--primary-low) 0%,
-      var(--primary-low-mid, var(--primary-low)) 100%
-    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-very-low);
+    color: var(--primary-high);
+
+    .d-icon {
+      font-size: clamp(2.75rem, 8vw, 4rem);
+    }
   }
 
   &__card-link:hover .gwj-featured-topic-slider-wrapper__media img,

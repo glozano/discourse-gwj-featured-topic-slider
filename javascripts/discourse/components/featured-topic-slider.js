@@ -25,10 +25,13 @@ export default class FeaturedTopicSliderComponent extends Component {
   @tracked lastSignature = null;
   @tracked parallaxOffsets = new Map();
   @tracked prefersReducedMotion = false;
+  @tracked viewportHasOverflow = null;
 
   #requestInFlight = null;
   #viewportElement = null;
   #motionPreferenceDisposer = null;
+  #resizeListenerAttached = false;
+  #handleResize = () => this.#scheduleOverflowMeasure();
 
   get hasTopics() {
     return Array.isArray(this.topics) && this.topics.length > 0;
@@ -116,7 +119,15 @@ export default class FeaturedTopicSliderComponent extends Component {
   }
 
   get showControls() {
-    return this.topicCards.length > 1;
+    if (this.topicCards.length <= 1) {
+      return false;
+    }
+
+    if (this.viewportHasOverflow === null) {
+      return false;
+    }
+
+    return this.viewportHasOverflow;
   }
 
   get isPrevDisabled() {
@@ -159,6 +170,7 @@ export default class FeaturedTopicSliderComponent extends Component {
         this.activeIndex = 0;
         this.lastSignature = signature;
         this.#scheduleParallaxUpdate();
+        this.#scheduleOverflowMeasure();
       })
       .catch((error) => {
         this.error = error;
@@ -181,6 +193,12 @@ export default class FeaturedTopicSliderComponent extends Component {
     element.addEventListener("scroll", this.handleViewportScroll, { passive: true });
     this.#setupMotionWatcher();
     this.#scheduleParallaxUpdate();
+    this.#scheduleOverflowMeasure();
+
+    if (typeof window !== "undefined" && !this.#resizeListenerAttached) {
+      window.addEventListener("resize", this.#handleResize);
+      this.#resizeListenerAttached = true;
+    }
   }
 
   @action
@@ -188,6 +206,12 @@ export default class FeaturedTopicSliderComponent extends Component {
     element.removeEventListener("scroll", this.handleViewportScroll);
     if (this.#viewportElement === element) {
       this.#viewportElement = null;
+      this.viewportHasOverflow = null;
+    }
+
+    if (typeof window !== "undefined" && this.#resizeListenerAttached) {
+      window.removeEventListener("resize", this.#handleResize);
+      this.#resizeListenerAttached = false;
     }
   }
 
@@ -239,6 +263,7 @@ export default class FeaturedTopicSliderComponent extends Component {
     this.activeIndex = closestIndex;
 
     this.parallaxOffsets = this.prefersReducedMotion ? new Map() : nextOffsets;
+    this.#updateOverflowState();
   }
 
   scrollToIndex(targetIndex) {
@@ -301,6 +326,30 @@ export default class FeaturedTopicSliderComponent extends Component {
     window.requestAnimationFrame(() => this.handleViewportScroll());
   }
 
+  #scheduleOverflowMeasure() {
+    if (typeof window === "undefined") {
+      return;
+    }
+    window.requestAnimationFrame(() => this.#updateOverflowState());
+  }
+
+  #updateOverflowState() {
+    const viewport = this.#viewportElement;
+
+    if (!viewport) {
+      if (this.viewportHasOverflow !== null) {
+        this.viewportHasOverflow = null;
+      }
+      return;
+    }
+
+    const hasOverflow = viewport.scrollWidth - viewport.clientWidth > 1;
+
+    if (this.viewportHasOverflow !== hasOverflow) {
+      this.viewportHasOverflow = hasOverflow;
+    }
+  }
+
   #setupMotionWatcher() {
     if (this.#motionPreferenceDisposer || typeof window === "undefined") {
       return;
@@ -334,6 +383,10 @@ export default class FeaturedTopicSliderComponent extends Component {
   willDestroy() {
     if (typeof super.willDestroy === "function") {
       super.willDestroy(...arguments);
+    }
+    if (typeof window !== "undefined" && this.#resizeListenerAttached) {
+      window.removeEventListener("resize", this.#handleResize);
+      this.#resizeListenerAttached = false;
     }
     if (this.#motionPreferenceDisposer) {
       this.#motionPreferenceDisposer();
