@@ -3,6 +3,7 @@
   data-featured-topic-slider="true"
   role="region"
   aria-label={{i18n "featured_topic_slider.region_label"}}
+  aria-busy={{this.isLoading}}
   {{did-insert this.loadTopics}}
   {{did-update this.handleSignatureChange this.fetchSignature}}
   style={{this.sliderInlineStyle}}
@@ -41,8 +42,25 @@
   </div>
 
   {{#if this.isLoading}}
-    <div class="gwj-featured-topic-slider-wrapper__status">
-      {{i18n "featured_topic_slider.loading"}}
+    <div
+      class="gwj-featured-topic-slider-wrapper__viewport gwj-featured-topic-slider-wrapper__viewport--skeleton"
+      aria-hidden="true"
+    >
+      <div class="gwj-featured-topic-slider-wrapper__track">
+        {{#each this.skeletonPlaceholders as |index|}}
+          <article
+            class="gwj-featured-topic-slider-wrapper__card gwj-featured-topic-slider-wrapper__card--skeleton"
+          >
+            <div class="gwj-featured-topic-slider-wrapper__media">
+              <div class="gwj-featured-topic-slider-wrapper__skeleton-block"></div>
+            </div>
+            <div class="gwj-featured-topic-slider-wrapper__body">
+              <div class="gwj-featured-topic-slider-wrapper__skeleton-line gwj-featured-topic-slider-wrapper__skeleton-line--title"></div>
+              <div class="gwj-featured-topic-slider-wrapper__skeleton-line gwj-featured-topic-slider-wrapper__skeleton-line--meta"></div>
+            </div>
+          </article>
+        {{/each}}
+      </div>
     </div>
   {{else if this.hasTopics}}
     <div

@@ -12,6 +12,9 @@ import { fetchFeaturedTopics } from "../lib/gwj-featured-topic-data";
 import { resolveTopicImage } from "../lib/gwj-topic-images";
 import getURL from "discourse-common/lib/get-url";
 
+const TOPIC_CACHE = new Map();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 export default class FeaturedTopicSliderComponent extends Component {
   @service site;
 
@@ -39,6 +42,16 @@ export default class FeaturedTopicSliderComponent extends Component {
 
   get showHeading() {
     return this.themeSettings.show_title && this.themeSettings.title_text?.length;
+  }
+
+  get skeletonCount() {
+    const desktopSlides = Math.max(Number(this.themeSettings.slides_desktop) || 3, 1);
+    const topicQuota = Math.max(Number(this.themeSettings.topic_count) || desktopSlides, 1);
+    return Math.min(desktopSlides, topicQuota);
+  }
+
+  get skeletonPlaceholders() {
+    return Array.from({ length: this.skeletonCount }, (_, index) => index);
   }
 
   get cacheContext() {
@@ -148,9 +161,26 @@ export default class FeaturedTopicSliderComponent extends Component {
       return;
     }
 
+    const signature = this.fetchSignature;
+
+    if (!force && TOPIC_CACHE.has(signature)) {
+      const cached = TOPIC_CACHE.get(signature);
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+        this.error = null;
+        this.topics = cached.topics.slice();
+        this.activeIndex = 0;
+        this.lastSignature = signature;
+        this.isLoading = false;
+        this.#scheduleParallaxUpdate();
+        this.#scheduleOverflowMeasure();
+        return;
+      } else {
+        TOPIC_CACHE.delete(signature);
+      }
+    }
+
     this.isLoading = true;
     this.error = null;
-    const signature = this.fetchSignature;
     const options = {
       tag: this.featuredTag,
       topicCount: this.topicQuota,
@@ -166,11 +196,29 @@ export default class FeaturedTopicSliderComponent extends Component {
           return;
         }
 
-        this.topics = topics;
+        const normalizedTopics = Array.isArray(topics) ? topics.slice() : [];
+        this.topics = normalizedTopics;
         this.activeIndex = 0;
         this.lastSignature = signature;
         this.#scheduleParallaxUpdate();
         this.#scheduleOverflowMeasure();
+        TOPIC_CACHE.set(signature, {
+          topics: normalizedTopics.slice(),
+          timestamp: Date.now(),
+        });
+        if (TOPIC_CACHE.size > 20) {
+          let oldestKey = null;
+          let oldestTimestamp = Number.POSITIVE_INFINITY;
+          for (const [key, value] of TOPIC_CACHE.entries()) {
+            if (value.timestamp < oldestTimestamp) {
+              oldestTimestamp = value.timestamp;
+              oldestKey = key;
+            }
+          }
+          if (oldestKey && oldestKey !== signature) {
+            TOPIC_CACHE.delete(oldestKey);
+          }
+        }
       })
       .catch((error) => {
         this.error = error;
